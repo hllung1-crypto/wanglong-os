@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旺龍匹克球社 - 入社申請</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-2xl font-bold text-blue-900 mb-4 text-center">旺龍 OS 註冊系統</h2>
+        <div id="profile" class="flex items-center space-x-4 mb-6 hidden">
+            <img id="pictureUrl" class="w-12 h-12 rounded-full" src="">
+            <p id="displayName" class="font-bold"></p>
+        </div>
+        
+        <form id="regForm" class="space-y-4">
+            <div><label class="block text-sm">真實姓名</label><input type="text" name="realName" required class="w-full border p-2 rounded"></div>
+            <div><label class="block text-sm">聯絡電話</label><input type="tel" name="phone" required class="w-full border p-2 rounded"></div>
+            <div><label class="block text-sm">電子信箱 (Email)</label><input type="email" name="email" required class="w-full border p-2 rounded"></div>
+            <div><label class="block text-sm">車牌號碼 (選填)</label><input type="text" name="carPlate" class="w-full border p-2 rounded"></div>
+            <div>
+                <label class="block text-sm">匹克球經驗</label>
+                <select name="experience" class="w-full border p-2 rounded">
+                    <option value="新手">新手</option>
+                    <option value="具基礎">具備基礎</option>
+                    <option value="常比賽">經常比賽</option>
+                </select>
+            </div>
+            <div><label><input type="checkbox" name="healthConfirm" required> 我確認目前身體狀況適合運動</label></div>
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4">送出申請</button>
+        </form>
+    </div>
+
+    <script>
+        // ⚠️ 請在這裡貼上您剛剛複製的 Google Apps Script 網址 (保留雙引號)
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
+        
+        // ⚠️ 稍後我們要回來填寫這個 LIFF ID
+        const LIFF_ID = "YOUR_LIFF_ID_HERE"; 
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); } 
+            else {
+                const profile = await liff.getProfile();
+                document.getElementById('displayName').innerText = profile.displayName;
+                document.getElementById('pictureUrl').src = profile.pictureUrl;
+                document.getElementById('profile').classList.remove('hidden');
+                window.userId = profile.userId;
+            }
+        }
+        main();
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('submitBtn').innerText = "傳送中...";
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.userId = window.userId; // 帶入 LINE ID
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    mode: 'no-cors' // 避免跨域問題
+                });
+                alert("申請已成功送出！");
+                liff.closeWindow(); // 關閉視窗
+            } catch (err) {
+                alert("傳送失敗，請稍後再試。");
+            }
+        });
+    </script>
+</body>
+</html>
