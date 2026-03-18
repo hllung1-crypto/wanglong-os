@@ -16,29 +16,53 @@
         </div>
         
         <form id="regForm" class="space-y-4">
-            <div><label class="block text-sm">真實姓名</label><input type="text" name="realName" required class="w-full border p-2 rounded"></div>
-            <div><label class="block text-sm">聯絡電話</label><input type="tel" name="phone" required class="w-full border p-2 rounded"></div>
-            <div><label class="block text-sm">電子信箱 (Email)</label><input type="email" name="email" required class="w-full border p-2 rounded"></div>
-            <div><label class="block text-sm">車牌號碼 (選填)</label><input type="text" name="carPlate" class="w-full border p-2 rounded"></div>
+            <div><label class="block text-sm font-medium text-gray-700">真實姓名</label><input type="text" name="realName" required class="mt-1 w-full border p-2 rounded"></div>
+            <div><label class="block text-sm font-medium text-gray-700">聯絡電話</label><input type="tel" name="phone" required class="mt-1 w-full border p-2 rounded"></div>
+            <div><label class="block text-sm font-medium text-gray-700">電子信箱 (Email)</label><input type="email" name="email" required class="mt-1 w-full border p-2 rounded"></div>
+            
             <div>
-                <label class="block text-sm">匹克球經驗</label>
-                <select name="experience" class="w-full border p-2 rounded">
+                <label class="block text-sm font-medium text-gray-700">年齡區間</label>
+                <select name="ageRange" required class="mt-1 w-full border p-2 rounded">
+                    <option value="" disabled selected>請選擇您的年齡區間</option>
+                    <option value="10歲以下">10歲以下</option>
+                    <option value="11-20歲">11-20歲</option>
+                    <option value="21-30歲">21-30歲</option>
+                    <option value="31-40歲">31-40歲</option>
+                    <option value="41-50歲">41-50歲</option>
+                    <option value="51-60歲">51-60歲</option>
+                    <option value="60歲以上">60歲以上</option>
+                </select>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700">車牌號碼 (選填)</label><input type="text" name="carPlate" class="mt-1 w-full border p-2 rounded"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">匹克球經驗</label>
+                <select name="experience" class="mt-1 w-full border p-2 rounded">
                     <option value="新手">新手</option>
                     <option value="具基礎">具備基礎</option>
                     <option value="常比賽">經常比賽</option>
                 </select>
             </div>
-            <div><label><input type="checkbox" name="healthConfirm" required> 我確認目前身體狀況適合運動</label></div>
-            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4">送出申請</button>
+
+            <div class="p-4 bg-red-50 rounded-lg space-y-3 border border-red-100">
+                <p class="text-sm font-bold text-red-800">🚨 緊急聯絡人資訊 (必填)</p>
+                <div><label class="block text-sm text-gray-700">聯絡人姓名</label><input type="text" name="emergName" required class="mt-1 w-full border p-2 rounded"></div>
+                <div><label class="block text-sm text-gray-700">聯絡人電話</label><input type="tel" name="emergPhone" required class="mt-1 w-full border p-2 rounded"></div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">推薦人 (選填)</label>
+                <input type="text" name="referee" class="mt-1 w-full border p-2 rounded" placeholder="若有朋友推薦，請填寫他的姓名">
+            </div>
+
+            <div><label class="flex items-center"><input type="checkbox" name="healthConfirm" required class="mr-2"> <span class="text-sm">我確認目前身體狀況適合運動</span></label></div>
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4 hover:bg-blue-700">送出申請</button>
         </form>
     </div>
 
     <script>
-        // ⚠️ 請在這裡貼上您剛剛複製的 Google Apps Script 網址 (保留雙引號)
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
-        
-        // ⚠️ 稍後我們要回來填寫這個 LIFF ID
-        const LIFF_ID = "2009510715-L2zRuOtp"; 
+        // ⚠️【請注意】這裡要換成您自己的 GAS_URL 和 LIFF_ID ⚠️
+        const GAS_URL = "請貼上您的_Google_Apps_Script_網址"; 
+        const LIFF_ID = "請貼上您的_LIFF_ID"; 
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
@@ -56,21 +80,24 @@
         document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             document.getElementById('submitBtn').innerText = "傳送中...";
+            document.getElementById('submitBtn').disabled = true;
             
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            data.userId = window.userId; // 帶入 LINE ID
+            data.userId = window.userId; 
 
             try {
                 await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(data),
-                    mode: 'no-cors' // 避免跨域問題
+                    mode: 'no-cors' 
                 });
-                alert("申請已成功送出！");
-                liff.closeWindow(); // 關閉視窗
+                alert("申請已成功送出！期待在球場見到您！");
+                liff.closeWindow(); 
             } catch (err) {
                 alert("傳送失敗，請稍後再試。");
+                document.getElementById('submitBtn').innerText = "重新送出";
+                document.getElementById('submitBtn').disabled = false;
             }
         });
     </script>
