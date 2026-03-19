@@ -33,7 +33,7 @@
                     <option value="60歲以上">60歲以上</option>
                 </select>
             </div>
-            <div><label class="block text-sm font-medium text-gray-700">車牌號碼 (選填)</label><input type="text" name="carPlate" class="mt-1 w-full border p-2 rounded"></div>
+            <div><label class="block text-sm font-medium text-gray-700">車牌號碼 (選填)</label><input type="text" name="carPlate" class="mt-1 w-full border p-2 rounded" placeholder="若需開車入校請務必填寫"></div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">匹克球經驗</label>
                 <select name="experience" class="mt-1 w-full border p-2 rounded">
@@ -54,13 +54,66 @@
                 <input type="text" name="referee" class="mt-1 w-full border p-2 rounded" placeholder="若有朋友推薦，請填寫他的姓名">
             </div>
 
-            <div><label class="flex items-center"><input type="checkbox" name="healthConfirm" required class="mr-2"> <span class="text-sm">我確認目前身體狀況適合運動</span></label></div>
-            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4 hover:bg-blue-700">送出申請</button>
+            <div class="mt-6 border border-gray-300 rounded-lg overflow-hidden">
+                <div class="bg-gray-200 px-4 py-2 border-b border-gray-300">
+                    <p class="text-sm font-bold text-gray-800 text-center">入社同意條約</p>
+                </div>
+                <div class="bg-gray-50 p-4 text-xs text-gray-700 h-48 overflow-y-auto space-y-3 leading-relaxed">
+                    <p class="font-bold text-sm text-gray-900">為維護球友權益、校園環境及個人安全，本人同意並承諾遵守以下條約：</p>
+                    
+                    <div>
+                        <p class="font-bold text-gray-800">一、 健康狀況與安全自負</p>
+                        <ul class="list-disc pl-5 space-y-1 mt-1">
+                            <li>本人確認身體狀況良好，無心血管疾病或其他不適合劇烈運動之病歷。</li>
+                            <li>本人理解匹克球運動具有碰撞或運動傷害之風險，活動期間若發生意外受傷或財產損失，本人同意自行承擔責任，概與社團發起人、幹部及提供場地之學校無涉。</li>
+                            <li>建議本人自行投保個人意外傷害險或醫療險，以增加保障。</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-gray-800">二、 使用者付費與永續經營</p>
+                        <ul class="list-disc pl-5 space-y-1 mt-1">
+                            <li>本人認同「使用者付費」原則，同意依社團規定準時分擔場地租金、球具耗材及行政庶務費。</li>
+                            <li>所有費用將透明化管理，並留作社團永續發展基金。</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-gray-800">三、 場地規範與環境維護</p>
+                        <ul class="list-disc pl-5 space-y-1 mt-1">
+                            <li>場地整潔：本人承諾愛護青草湖國小設施設備，活動結束後主動協助清理場地，將個人及現場垃圾帶走，維持環境整潔。</li>
+                            <li>校園安全：嚴禁擅自進入非租借之校園區域。</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-gray-800">四、 人員與停車管理</p>
+                        <ul class="list-disc pl-5 space-y-1 mt-1">
+                            <li>車牌登記：若本人有開車進入校園需求，必須提供正確車牌號碼（依上方表單登記為準），並遵守校內行車與停車規定。</li>
+                            <li>實名管制：本人不得私自帶領非社團成員進入校園，以維護校方安全管理制度。</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-gray-800">五、 違規處理</p>
+                        <p class="pl-2 mt-1">若本人違反上述規定且經幹部會議勸導無效者，同意由本會取消會員資格，且不得要求退還已繳交之常年服務費用。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" name="healthConfirm" required class="mt-1 mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"> 
+                    <span class="text-sm font-bold text-red-600">我已詳細閱讀並同意遵守上述條約，且確認目前身體狀況適合運動。</span>
+                </label>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4 hover:bg-blue-700 shadow-lg">送出申請</button>
         </form>
     </div>
 
     <script>
-        // ⚠️【請注意】這裡要換成您自己的 GAS_URL 和 LIFF_ID ⚠️
+        // ⚠️【請注意】這裡要換回您自己的 GAS_URL 和 LIFF_ID ⚠️
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-L2zRuOtp"; 
 
