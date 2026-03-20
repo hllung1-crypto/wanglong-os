@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旺龍匹克球社 - 週末場地預約</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-600">
+        <h2 class="text-2xl font-black text-blue-900 mb-2 text-center">週末場地預約系統</h2>
+        <p class="text-xs text-gray-500 text-center mb-6">系統將依您的程度，自動為您配對合適的場地球友</p>
+        
+        <form id="bookingForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">📅 預約日期</label>
+                <select id="playDate" name="playDate" required class="w-full border-2 border-gray-200 p-3 rounded-lg bg-gray-50 font-bold text-blue-700">
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">⏰ 選擇打球時段</label>
+                <select name="playTime" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500">
+                    <option value="" disabled selected>請選擇時段...</option>
+                    <option value="09:00~10:30">🌞 09:00 ~ 10:30</option>
+                    <option value="10:30~12:00">☀️ 10:30 ~ 12:00</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">🎚️ 選擇您的程度 (系統自動配對)</label>
+                <select name="level" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500">
+                    <option value="" disabled selected>請評估自身程度...</option>
+                    <option value="新手">🔰 新手友善 (優先安排 Court 1)</option>
+                    <option value="一般">⚔️ 一般交流 (優先安排 Court 2)</option>
+                    <option value="進階">🔥 進階競技 (優先安排 Court 3)</option>
+                </select>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <p class="text-xs text-yellow-800 font-bold">⚠️ 預約與取消規範：</p>
+                <ul class="list-disc pl-4 text-xs text-yellow-700 mt-1 space-y-1">
+                    <li>每時段每場地限額 6 人。</li>
+                    <li>每人每日最多可預約 2 個時段。</li>
+                    <li>若因故無法出席，最晚請於「當週三 23:59 前」取消。</li>
+                </ul>
+            </div>
+
+            <input type="hidden" name="action" value="booking">
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-blue-700 text-lg transition-all">送出預約，自動配對</button>
+        </form>
+    </div>
+
+    <script>
+        // ⚠️【待會要填入的兩把鑰匙】
+        const GAS_URL = "請貼上您的大腦_GAS_URL"; 
+        const LIFF_ID = "請貼上預約系統的_LIFF_ID"; 
+
+        // 自動計算下週六
+        function getNextSaturday() {
+            const today = new Date();
+            const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7; 
+            const nextSaturday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSaturday);
+            return nextSaturday.toISOString().split('T')[0];
+        }
+        document.getElementById('playDate').innerHTML = `<option value="${getNextSaturday()}">${getNextSaturday()} (週六)</option>`;
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); } 
+            else {
+                const profile = await liff.getProfile();
+                window.userId = profile.userId;
+                window.userName = profile.displayName; 
+            }
+        }
+        main();
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "系統配對中...";
+            btn.disabled = true;
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.userId = window.userId;
+            data.userName = window.userName;
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    mode: 'no-cors' 
+                });
+                alert("預約請求已送出！系統已為您進行場地配對，請留意 LINE 通知。");
+                liff.closeWindow(); 
+            } catch (err) {
+                alert("連線失敗，請稍後再試。");
+                btn.innerText = "重新送出";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
