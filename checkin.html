@@ -8,7 +8,8 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body class="bg-gray-100 p-6 flex items-center justify-center min-h-screen">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600">
+    
+    <div id="mainContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600">
         <h2 class="text-2xl font-black text-green-900 mb-2 text-center">✅ 現場掃碼報到</h2>
         <p class="text-xs text-gray-500 text-center mb-6">歡迎來到球場！請確認報到者姓名</p>
         
@@ -25,7 +26,7 @@
     </div>
 
     <script>
-        // ⚠️【請填入您的兩把鑰匙】
+        // ⚠️【請務必重新填入這兩把鑰匙】
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-qaLnrQzo"; 
 
@@ -36,7 +37,6 @@
             } else {
                 const profile = await liff.getProfile();
                 window.userId = profile.userId;
-                // 自動把家長的 LINE 名字填入格子裡
                 document.getElementById('playerName').value = profile.displayName;
             }
         }
@@ -53,16 +53,15 @@
             data.userId = window.userId;
 
             try {
-                // 將打卡資料送交給大腦核對
                 await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(data),
                     mode: 'no-cors' 
                 });
                 
-                // 🎯 升級：將畫面替換成展示型通行證，並加入手動關閉按鈕
-                document.body.innerHTML = `
-                    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center border-t-4 border-green-600 flex flex-col items-center justify-center">
+                // 🎯 完美替換：把表單變成展示型通行證
+                document.getElementById('mainContainer').innerHTML = `
+                    <div class="text-center flex flex-col items-center justify-center py-6">
                         <div class="text-7xl mb-4">✅</div>
                         <h2 class="text-2xl font-black text-green-900 mb-2">報到資料已送出</h2>
                         <p class="text-red-600 font-bold mb-6">⚠️ 請將此畫面出示給現場管理員核對</p>
@@ -70,11 +69,9 @@
                     </div>
                 `;
                 
-                // (移除了原本的 setTimeout 自動關閉功能)
-                
             } catch (err) {
                 alert("網路連線失敗，請稍後再試或洽管理員。");
-                btn.innerText = "重新打卡";
+                btn.innerText = "送出打卡";
                 btn.disabled = false;
             }
         });
