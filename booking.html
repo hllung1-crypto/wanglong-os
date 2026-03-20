@@ -57,12 +57,18 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-QgFwZuQs"; 
 
-        // 自動計算下週六
+        // 自動計算下週六 (修正時區 Bug 版)
         function getNextSaturday() {
             const today = new Date();
             const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7; 
             const nextSaturday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSaturday);
-            return nextSaturday.toISOString().split('T')[0];
+            
+            // 獨立抓取本地的年、月、日，並自動補零
+            const yyyy = nextSaturday.getFullYear();
+            const mm = String(nextSaturday.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextSaturday.getDate()).padStart(2, '0');
+            
+            return `${yyyy}-${mm}-${dd}`;
         }
         document.getElementById('playDate').innerHTML = `<option value="${getNextSaturday()}">${getNextSaturday()} (週六)</option>`;
 
