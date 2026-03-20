@@ -60,8 +60,18 @@
                     mode: 'no-cors' 
                 });
                 
-                alert("打卡資料已送出！若資格符合，紀錄將寫入系統。");
-                liff.closeWindow(); 
+                // 🎯 升級：將畫面替換成展示型通行證，並加入手動關閉按鈕
+                document.body.innerHTML = `
+                    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center border-t-4 border-green-600 flex flex-col items-center justify-center">
+                        <div class="text-7xl mb-4">✅</div>
+                        <h2 class="text-2xl font-black text-green-900 mb-2">報到資料已送出</h2>
+                        <p class="text-red-600 font-bold mb-6">⚠️ 請將此畫面出示給現場管理員核對</p>
+                        <button onclick="liff.closeWindow()" class="w-full bg-gray-500 text-white font-black py-4 rounded-xl shadow-md hover:bg-gray-600 text-lg transition-all">我已出示，關閉視窗</button>
+                    </div>
+                `;
+                
+                // (移除了原本的 setTimeout 自動關閉功能)
+                
             } catch (err) {
                 alert("網路連線失敗，請稍後再試或洽管理員。");
                 btn.innerText = "重新打卡";
