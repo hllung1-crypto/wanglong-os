@@ -9,14 +9,14 @@
 </head>
 <body class="bg-gray-100 p-6 flex items-center justify-center min-h-screen">
     
-    <div id="mainContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600">
+    <div id="mainContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600 transition-all duration-300">
         <h2 class="text-2xl font-black text-green-900 mb-2 text-center">✅ 現場掃碼報到</h2>
         <p class="text-xs text-gray-500 text-center mb-6">歡迎來到球場！請確認報到者姓名</p>
         
         <form id="checkinForm" class="space-y-5">
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">👤 報到球友姓名</label>
-                <input type="text" id="playerName" name="playerName" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-green-500 text-green-900 font-bold" placeholder="請輸入報到者的真實姓名">
+                <input type="text" id="playerName" name="playerName" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-green-500 text-green-900 font-bold text-lg" placeholder="請輸入報到者的真實姓名">
                 <p class="text-xs text-gray-500 mt-2">預設為您的名字。若要幫已註冊的家人打卡，請直接修改為家人的姓名。</p>
             </div>
 
@@ -26,7 +26,7 @@
     </div>
 
     <script>
-        // ⚠️【請務必重新填入這兩把鑰匙】
+        // ⚠️【請務必確認這兩把鑰匙與您的一致】
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-qaLnrQzo"; 
 
@@ -38,12 +38,12 @@
                 const profile = await liff.getProfile();
                 window.userId = profile.userId;
                 
-                // 💡 UX 升級：在連線大腦時先顯示載入中，安撫球友
+                // 💡 UX 升級：在連線大腦時先顯示載入中
                 const nameInput = document.getElementById('playerName');
                 nameInput.value = "系統讀取中...";
 
                 try {
-                    // 帶著金鑰去向大腦（模式 C）詢問這支手機的「真實姓名」
+                    // 帶著金鑰去向大腦（模式 C）詢問真實姓名
                     const response = await fetch(GAS_URL, {
                         method: 'POST',
                         body: JSON.stringify({ 
@@ -55,14 +55,12 @@
                     
                     const res = await response.json();
                     
-                    // 如果大腦有找到真名，就填入真名；如果沒找到(可能還沒發卡)，就退回使用 LINE 暱稱
                     if (res.status === "success" && res.realName) {
                         nameInput.value = res.realName;
                     } else {
                         nameInput.value = profile.displayName; 
                     }
                 } catch(e) {
-                    // 萬一網路連線異常，至少還有 LINE 暱稱可以擋著用
                     nameInput.value = profile.displayName;
                 }
             }
@@ -72,7 +70,7 @@
         document.getElementById('checkinForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            btn.innerText = "資料傳送中...";
+            btn.innerText = "資料核對中...";
             btn.disabled = true;
             
             const formData = new FormData(e.target);
@@ -81,25 +79,48 @@
             data.apiToken = "WANGLONG_SECURE_2026";
 
             try {
-                await fetch(GAS_URL, {
+                // 🚀 關鍵修改：移除了 no-cors，讓網頁能讀取大腦回傳的精確資料
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JSON.stringify(data),
-                    mode: 'no-cors' 
+                    body: JSON.stringify(data)
                 });
                 
-                // 🎯 完美替換：把表單變成展示型通行證
-                document.getElementById('mainContainer').innerHTML = `
-                    <div class="text-center flex flex-col items-center justify-center py-6">
-                        <div class="text-7xl mb-4">✅</div>
-                        <h2 class="text-2xl font-black text-green-900 mb-2">報到資料已送出</h2>
-                        <p class="text-red-600 font-bold mb-6">⚠️ 請將此畫面出示給現場管理員核對</p>
-                        <button onclick="liff.closeWindow()" class="w-full bg-gray-500 text-white font-black py-4 rounded-xl shadow-md hover:bg-gray-600 text-lg transition-all">我已出示，關閉視窗</button>
-                    </div>
-                `;
+                const res = await response.json();
+
+                if (res.status === "success") {
+                    // 1. 取得手機當下的精確時間
+                    const now = new Date();
+                    const timeString = now.toLocaleString('zh-TW', { hour12: false });
+                    
+                    // 2. 防呆處理：如果沒預約，預設顯示候補
+                    const courtDisplay = res.courtInfo ? res.courtInfo : "現場候補 (今日無預約)";
+
+                    // 3. 完美替換：把表單變成帶有動態資料的展示型通行證 (Tailwind CSS 質感設計)
+                    document.getElementById('mainContainer').innerHTML = `
+                        <div class="text-center flex flex-col items-center justify-center py-2">
+                            <div class="text-6xl mb-3">✅</div>
+                            <h2 class="text-2xl font-black text-green-900 mb-5">報到成功</h2>
+                            
+                            <div class="w-full bg-green-50 rounded-xl p-5 text-left border-2 border-green-200 mb-6 shadow-inner">
+                                <p class="mb-3 text-gray-500 text-sm">👤 <strong>球友姓名</strong> <br><span class="text-blue-800 text-xl font-black tracking-wide">${res.userName}</span></p>
+                                <p class="mb-3 text-gray-500 text-sm">🏓 <strong>今日場地</strong> <br><span class="text-red-600 text-xl font-black">${courtDisplay}</span></p>
+                                <p class="text-gray-500 text-sm">⏰ <strong>打卡時間</strong> <br><span class="text-gray-800 font-bold">${timeString}</span></p>
+                            </div>
+                            
+                            <p class="text-red-600 font-bold mb-5 text-sm">⚠️ 請將此畫面出示給現場管理員核對</p>
+                            <button onclick="liff.closeWindow()" class="w-full bg-gray-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-gray-700 text-lg transition-all">我已出示，關閉視窗</button>
+                        </div>
+                    `;
+                } else {
+                    // ❌ 報到失敗 (例如沒繳費、查無此人)，跳出大腦給的錯誤訊息
+                    alert(res.message);
+                    btn.innerText = "重新送出打卡";
+                    btn.disabled = false;
+                }
                 
             } catch (err) {
-                alert("網路連線失敗，請稍後再試或洽管理員。");
-                btn.innerText = "送出打卡";
+                alert("網路連線失敗，請稍後再試或洽現場管理員。");
+                btn.innerText = "重新送出打卡";
                 btn.disabled = false;
             }
         });
