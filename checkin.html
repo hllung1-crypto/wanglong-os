@@ -78,6 +78,7 @@
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             data.userId = window.userId;
+            data.apiToken = "WANGLONG_SECURE_2026";
 
             try {
                 await fetch(GAS_URL, {
