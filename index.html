@@ -137,9 +137,15 @@
             
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            data.userId = window.userId; 
+            data.userId = window.userId;
+
+            // 👇👇👇 🔑 請把 API 鑰匙加在這裡！👇👇👇
+            data.apiToken = "WANGLONG_SECURE_2026";
+            // 💡 為了確保大腦知道這是註冊，我們順便強制加上 action 標籤
+            data.action = "register";
 
             try {
+                // (下面緊接著就會是 await fetch(GAS_URL... )
                 await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(data),
