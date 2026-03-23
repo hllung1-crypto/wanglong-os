@@ -3,186 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>場地預約系統 - 旺龍匹克球社</title>
+    <title>旺龍匹克球社 - 週末場地預約</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
-<body class="bg-gray-100 p-4 md:p-6 min-h-screen">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-600">
+        <h2 class="text-2xl font-black text-blue-900 mb-2 text-center">週末場地預約系統</h2>
+        <p class="text-xs text-gray-500 text-center mb-6">系統將依您的程度，自動為您配對合適的場地球友</p>
         
-        <div class="bg-blue-900 p-6 text-white text-center">
-            <h2 class="text-2xl font-bold mb-2">場地預約系統</h2>
-            <div id="profile" class="flex items-center justify-center space-x-3 hidden mt-4 bg-blue-800 p-3 rounded-lg">
-                <img id="pictureUrl" class="w-10 h-10 rounded-full border-2 border-white" src="">
-                <p id="displayName" class="font-bold text-sm"></p>
-            </div>
-        </div>
-
-        <div id="loading" class="p-8 text-center text-gray-500 font-bold flex flex-col items-center">
-            <svg class="animate-spin h-8 w-8 text-blue-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p>正在同步您的預約資料...</p>
-        </div>
-
-        <div id="bookingList" class="p-6 space-y-4 hidden">
+        <form id="bookingForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">📅 預約日期</label>
+                <select id="playDate" name="playDate" required class="w-full border-2 border-gray-200 p-3 rounded-lg bg-gray-50 font-bold text-blue-700">
+                </select>
             </div>
 
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">👤 預約球友姓名</label>
+                <input type="text" id="playerName" name="playerName" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500 text-blue-900 font-bold" placeholder="請輸入預約者的真實姓名">
+                <p class="text-xs text-gray-500 mt-1">預設為您的名字。同一 LINE 帳號可直接修改姓名，幫已註冊的家人代劃場地。</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">⏰ 選擇打球時段</label>
+                <select name="playTime" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500">
+                    <option value="" disabled selected>請選擇時段...</option>
+                    <option value="09:00~10:30">🌞 09:00 ~ 10:30</option>
+                    <option value="10:30~12:00">☀️ 10:30 ~ 12:00</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">🎚️ 選擇程度 (系統自動配對)</label>
+                <select name="level" required class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500">
+                    <option value="" disabled selected>請評估自身程度...</option>
+                    <option value="新手">🔰 新手友善 (優先安排 Court 1)</option>
+                    <option value="一般">⚔️ 一般交流 (優先安排 Court 2)</option>
+                    <option value="進階">🔥 進階競技 (優先安排 Court 3)</option>
+                </select>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <p class="text-xs text-yellow-800 font-bold">⚠️ 預約與取消規範：</p>
+                <ul class="list-disc pl-4 text-xs text-yellow-700 mt-1 space-y-1">
+                    <li>每時段每場地限額 6 人。</li>
+                    <li>每人每日最多可預約 2 個時段。</li>
+                </ul>
+            </div>
+
+            <input type="hidden" name="action" value="booking">
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-blue-700 text-lg transition-all">送出預約，自動配對</button>
+        </form>
     </div>
 
     <script>
-        // ⚠️【請替換】您的 GAS 網址與 LIFF ID
+        // ⚠️【待會要填入的兩把鑰匙】
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-QgFwZuQs"; 
 
-        // 📅【設定】在這裡設定您開放預約的時段與場地
-        const availableSessions = [
-            { id: "2026-06-20-A", dateText: "2026/06/20 (六) 14:00-16:00", court: "A場" },
-            { id: "2026-06-20-B", dateText: "2026/06/20 (六) 14:00-16:00", court: "B場" },
-            { id: "2026-06-21-A", dateText: "2026/06/21 (日) 09:00-11:00", court: "A場" }
-        ];
-
-        // 紀錄使用者已預約的清單 (從資料庫抓取後存放在此)
-        let myBookedIds = [];
-
-        // 1. 初始化 LINE LIFF 與網頁
-        async function main() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { 
-                    liff.login(); 
-                    return;
-                } 
-                
-                // 顯示個人資訊
-                const profile = await liff.getProfile();
-                document.getElementById('displayName').innerText = profile.displayName;
-                document.getElementById('pictureUrl').src = profile.pictureUrl;
-                document.getElementById('profile').classList.remove('hidden');
-                window.userId = profile.userId;
-
-                // 讀取該使用者的預約紀錄
-                await fetchMyBookings();
-
-            } catch (err) {
-                console.error("初始化失敗:", err);
-                alert("系統初始化失敗，請重新載入網頁。");
-            }
-        }
-
-        // 2. 從 GAS 讀取個人預約紀錄
-        async function fetchMyBookings() {
-            try {
-                // 向後端請求資料，action 設定為 'get_bookings'
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "get_bookings",
-                        userId: window.userId,
-                        apiToken: "WANGLONG_SECURE_2026"
-                    })
-                    // 注意：這裡不能加 mode: 'no-cors'，否則會讀不到回傳的資料
-                });
-                
-                const result = await response.json();
-                
-                if (result.status === "success") {
-                    myBookedIds = result.bookedIds; // 例如回傳 ["2026-06-20-A"]
-                }
-            } catch (error) {
-                console.error("讀取預約資料失敗:", error);
-                // 即使失敗，還是可以讓畫面顯示出來，只是可能抓不到舊資料
-            } finally {
-                // 隱藏載入中，顯示列表
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('bookingList').classList.remove('hidden');
-                renderBookingList();
-            }
-        }
-
-        // 3. 渲染預約畫面 (根據是否已預約顯示不同按鈕)
-        function renderBookingList() {
-            const listContainer = document.getElementById('bookingList');
-            listContainer.innerHTML = ""; // 清空內容
-
-            availableSessions.forEach(session => {
-                const isBooked = myBookedIds.includes(session.id);
-                
-                // 根據狀態決定樣式與按鈕文字
-                const bgColor = isBooked ? "bg-green-50 border-green-200" : "bg-white border-gray-200";
-                const statusBadge = isBooked ? `<span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded ml-2">已預約</span>` : "";
-                
-                const buttonHtml = isBooked 
-                    ? `<button onclick="handleAction('${session.id}', 'cancel')" id="btn-${session.id}" class="w-full mt-3 bg-red-50 text-red-600 font-bold py-2 rounded border border-red-200 hover:bg-red-100 transition">取消預約</button>`
-                    : `<button onclick="handleAction('${session.id}', 'book')" id="btn-${session.id}" class="w-full mt-3 bg-blue-600 text-white font-bold py-2 rounded shadow hover:bg-blue-700 transition">立即預約</button>`;
-
-                const html = `
-                    <div class="border rounded-lg p-4 ${bgColor} shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-gray-800 text-lg">${session.dateText}</h3>
-                                <p class="text-sm text-gray-600 mt-1">場地：${session.court} ${statusBadge}</p>
-                            </div>
-                        </div>
-                        ${buttonHtml}
-                    </div>
-                `;
-                listContainer.insertAdjacentHTML('beforeend', html);
-            });
-        }
-
-        // 4. 處理「預約」或「取消」的點擊事件
-        async function handleAction(bookingId, actionType) {
-            const isCancel = actionType === 'cancel';
-            const actionText = isCancel ? "取消" : "預約";
+        // 自動計算下週六 (修正時區 Bug 版)
+        function getNextSaturday() {
+            const today = new Date();
+            const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7; 
+            const nextSaturday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSaturday);
             
-            if (isCancel && !confirm("確定要取消這個時段的預約嗎？\n取消後將釋出名額給其他球友。")) {
-                return;
-            }
+            // 獨立抓取本地的年、月、日，並自動補零
+            const yyyy = nextSaturday.getFullYear();
+            const mm = String(nextSaturday.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextSaturday.getDate()).padStart(2, '0');
+            
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        document.getElementById('playDate').innerHTML = `<option value="${getNextSaturday()}">${getNextSaturday()} (週六)</option>`;
 
-            const btn = document.getElementById(`btn-${bookingId}`);
-            btn.disabled = true;
-            btn.innerText = "處理中...";
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-
-            const data = {
-                action: actionType, // 'book' 或 'cancel'
-                userId: window.userId,
-                bookingId: bookingId,
-                apiToken: "WANGLONG_SECURE_2026"
-            };
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { 
+                liff.login({ redirectUri: window.location.href }); 
+            } else {
+                const profile = await liff.getProfile();
+                window.userId = profile.userId;
                 
-                const result = await response.json();
+                // 💡 UX 升級：在連線大腦時先顯示載入中，安撫球友
+                const nameInput = document.getElementById('playerName');
+                nameInput.value = "系統讀取中...";
 
-                if (result.status === "success") {
-                    alert(`${actionText}成功！`);
-                    // 更新本地陣列狀態
-                    if (isCancel) {
-                        myBookedIds = myBookedIds.filter(id => id !== bookingId);
+                try {
+                    // 帶著金鑰去向大腦（模式 C）詢問這支手機的「真實姓名」
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            action: "getRealName", 
+                            userId: profile.userId, 
+                            apiToken: "WANGLONG_SECURE_2026" 
+                        })
+                    });
+                    
+                    const res = await response.json();
+                    
+                    // 如果大腦有找到真名，就填入真名；如果沒找到(可能還沒發卡)，就退回使用 LINE 暱稱
+                    if (res.status === "success" && res.realName) {
+                        nameInput.value = res.realName;
                     } else {
-                        myBookedIds.push(bookingId);
+                        nameInput.value = profile.displayName; 
                     }
-                    // 重新渲染畫面
-                    renderBookingList();
-                } else {
-                    throw new Error(result.message || "未知的錯誤");
+                } catch(e) {
+                    // 萬一網路連線異常，至少還有 LINE 暱稱可以擋著用
+                    nameInput.value = profile.displayName;
                 }
-            } catch (err) {
-                alert(`系統忙碌中，${actionText}失敗，請稍後再試。`);
-                // 恢復按鈕狀態
-                renderBookingList(); 
             }
         }
-
-        // 啟動程式
         main();
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "系統配對中...";
+            btn.disabled = true;
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.userId = window.userId;
+            data.userName = window.userName;
+            data.apiToken = "WANGLONG_SECURE_2026";
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    mode: 'no-cors' 
+                });
+                alert("預約請求已送出！系統已為您進行場地配對，請留意 LINE 通知。");
+                liff.closeWindow(); 
+            } catch (err) {
+                alert("連線失敗，請稍後再試。");
+                btn.innerText = "重新送出";
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
