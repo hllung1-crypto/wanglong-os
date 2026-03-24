@@ -144,36 +144,35 @@
 
         document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            document.getElementById('submitBtn').innerText = "傳送中...";
-            document.getElementById('submitBtn').disabled = true;
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "傳送中...";
+            btn.disabled = true;
             
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             data.userId = window.userId;
-
-            // 👇👇👇 🔑 請把 API 鑰匙加在這裡！👇👇👇
             data.apiToken = "WANGLONG_SECURE_2026";
-            // 💡 為了確保大腦知道這是註冊，我們順便強制加上 action 標籤
             data.action = "register";
 
             try {
-                // (下面緊接著就會是 await fetch(GAS_URL... )
+                // ✅ 修正點：移除 no-cors，並加上正確的 headers 讓 GAS 讀得懂
                 await fetch(GAS_URL, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8', 
+                    },
                     body: JSON.stringify(data),
-                    mode: 'no-cors' 
+                    redirect: 'follow' 
                 });
+                
                 alert("申請已成功送出！期待在球場見到您！");
-                // ==========================================
-                // 🌟 神奇魔法：讓球友的 LINE 自動傳送打招呼訊息給官方帳號
-                // ==========================================
-                // 判斷球友是不是真的在 LINE App 裡面打開這個網頁 (如果在電腦瀏覽器打開則不執行，避免報錯)
+                
+                // 🌟 神奇魔法：讓球友的 LINE 自動傳送打招呼訊息
                 if (liff.isInClient()) {
                     try {
                         await liff.sendMessages([
                             {
                                 type: 'text',
-                                // 這裡的文字就是球友會自動傳給官方帳號的內容
                                 text: '社長好！我是「' + data.realName + '」👋\n我剛剛已經成功送出了旺龍匹克球社的入社申請表囉！🏓'
                             }
                         ]);
@@ -181,12 +180,13 @@
                         console.error("自動發送訊息失敗", error);
                     }
                 }
-                // ==========================================
+                
                 liff.closeWindow(); 
             } catch (err) {
+                console.error(err);
                 alert("傳送失敗，請稍後再試。");
-                document.getElementById('submitBtn').innerText = "重新送出";
-                document.getElementById('submitBtn').disabled = false;
+                btn.innerText = "重新送出";
+                btn.disabled = false;
             }
         });
     </script>
