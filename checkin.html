@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
-<body class="bg-gray-100 p-6 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 p-6 flex items-center justify-center min-h-screen relative">
     
-    <div id="mainContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600 transition-all duration-300">
+    <div id="mainContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-600 transition-all duration-300 z-10">
         <h2 class="text-2xl font-black text-green-900 mb-2 text-center">✅ 現場掃碼報到</h2>
         <p class="text-xs text-gray-500 text-center mb-6">歡迎來到球場！請確認報到者姓名</p>
         
@@ -25,12 +25,35 @@
         </form>
     </div>
 
+    <div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full transform transition-all duration-300 scale-95 opacity-0 border-2 border-green-100" id="modalBody">
+            <div class="text-center">
+                <div class="text-7xl mb-4 animate-bounce">✅</div>
+                <h2 class="text-3xl font-black text-green-600 mb-2 tracking-tight">報到成功！</h2>
+                
+                <p class="text-gray-600 font-bold mb-6 pb-4 border-b border-gray-100" id="modalSubText"></p>
+                
+                <p class="text-gray-800 text-lg mb-8 font-medium leading-relaxed">
+                    為了方便處長安排場地<br>要順便預約<strong class="text-blue-600">「下週」</strong>的時段嗎？
+                </p>
+                
+                <div class="flex flex-col space-y-3">
+                    <button id="confirmBookingBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 text-lg transition-all flex items-center justify-center">
+                        <span class="mr-2">📅</span> 我要預約下週
+                    </button>
+                    <button id="cancelBookingBtn" class="w-full bg-gray-100 text-gray-500 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all">
+                        稍後再說
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ⚠️【請確認】這三組網址是否正確 ⚠️
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
-        const LIFF_ID = "2009510715-qaLnrQzo"; 
-        
-        // 🎯 這裡請填入您的「場地預約」LIFF 完整網址
-        const BOOKING_LIFF_URL = "https://liff.line.me/2009510715-QgFwZuQs"; 
+        const LIFF_ID = "2009510715-qaLnrQzo"; // 報到系統的 LIFF
+        const BOOKING_LIFF_URL = "https://liff.line.me/2009510715-QgFwZuQs"; // 預約系統的 LIFF
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
@@ -67,6 +90,38 @@
         }
         main();
 
+        // --- 彈出視窗控制邏輯 ---
+        function showModal(userName, courtInfo) {
+            // 設定彈窗內的子標題
+            document.getElementById('modalSubText').innerText = userName + " | " + courtInfo;
+            
+            const modal = document.getElementById('bookingModal');
+            const modalBody = document.getElementById('modalBody');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBody.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('bookingModal');
+            const modalBody = document.getElementById('modalBody');
+            modal.classList.add('opacity-0');
+            modalBody.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 綁定彈窗按鈕事件
+        document.getElementById('confirmBookingBtn').addEventListener('click', () => {
+            window.location.href = BOOKING_LIFF_URL; // 跳轉去預約
+        });
+        document.getElementById('cancelBookingBtn').addEventListener('click', hideModal); // 關閉彈窗，看底下的票卡
+
+
+        // --- 表單送出邏輯 ---
         document.getElementById('checkinForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -91,11 +146,10 @@
                     const timeString = now.toLocaleString('zh-TW', { hour12: false });
                     const courtDisplay = res.courtInfo ? res.courtInfo : "現場候補 (今日無預約)";
 
-                    // 1. 先變更畫面為票卡 (加入預約下週的按鈕)
+                    // 1. 產生底層的綠色報到票卡
                     document.getElementById('mainContainer').innerHTML = `
                         <div class="text-center flex flex-col items-center justify-center py-2">
-                            <div class="text-6xl mb-3">✅</div>
-                            <h2 class="text-2xl font-black text-green-900 mb-5">報到成功</h2>
+                            <h2 class="text-2xl font-black text-green-900 mb-5">報到明細</h2>
                             
                             <div class="w-full bg-green-50 rounded-xl p-5 text-left border-2 border-green-200 mb-6 shadow-inner">
                                 <p class="mb-3 text-gray-500 text-sm">👤 <strong class="text-gray-700">球友姓名</strong> <br><span class="text-blue-800 text-xl font-black tracking-wide">${res.userName}</span></p>
@@ -103,27 +157,15 @@
                                 <p class="text-gray-500 text-sm">⏰ <strong class="text-gray-700">打卡時間</strong> <br><span class="text-gray-800 font-bold">${timeString}</span></p>
                             </div>
                             
-                            <p class="text-red-600 font-bold mb-4 text-sm">⚠️ 請將此畫面出示給現場管理員</p>
-                            
-                            <div class="w-full space-y-3">
-                                <button onclick="window.location.href='${BOOKING_LIFF_URL}'" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-blue-700 text-lg transition-all flex items-center justify-center">
-                                    <span class="mr-2">📅</span> 順便預約下週場地
-                                </button>
-                                
-                                <button onclick="liff.closeWindow()" class="w-full bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
-                                    我已出示，關閉視窗
-                                </button>
-                            </div>
+                            <p class="text-red-600 font-bold mb-5 text-sm">⚠️ 請將此畫面出示給現場管理員</p>
+                            <button onclick="liff.closeWindow()" class="w-full bg-gray-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-gray-700 text-lg transition-all">我已出示，關閉視窗</button>
                         </div>
                     `;
 
-                    // 2. 畫面更新完畢後，稍微延遲 0.5 秒再彈出提示框，體驗會比較順暢
+                    // 2. 延遲 0.3 秒後，跳出上層的精美預約彈窗
                     setTimeout(() => {
-                        const wantToBook = confirm(`報到成功！🎉\n\n球友：${res.userName}\n狀態：${courtDisplay}\n\n👉 要順便為自己劃位下週的打球時段嗎？`);
-                        if (wantToBook) {
-                            window.location.href = BOOKING_LIFF_URL;
-                        }
-                    }, 500);
+                        showModal(res.userName, courtDisplay);
+                    }, 300);
 
                 } else {
                     alert(res.message);
