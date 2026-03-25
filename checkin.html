@@ -26,9 +26,11 @@
     </div>
 
     <script>
-        // 您的專屬金鑰 (已為您填好)
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxfdaoJHvyPmKZq9dqWX2k5qy_KHnDu9g0L3UpLEkY83fL-Pqmh2GZRt6WnqWCFzRtewA/exec"; 
         const LIFF_ID = "2009510715-qaLnrQzo"; 
+        
+        // 🎯 這裡請填入您的「場地預約」LIFF 完整網址
+        const BOOKING_LIFF_URL = "https://liff.line.me/2009510715-QgFwZuQs"; 
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
@@ -77,7 +79,6 @@
             data.apiToken = "WANGLONG_SECURE_2026";
 
             try {
-                // 發送給大腦
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(data)
@@ -86,14 +87,11 @@
                 const res = await response.json();
 
                 if (res.status === "success") {
-                    // 1. 取得手機當下時間
                     const now = new Date();
                     const timeString = now.toLocaleString('zh-TW', { hour12: false });
-                    
-                    // 2. 決定場地顯示文字
                     const courtDisplay = res.courtInfo ? res.courtInfo : "現場候補 (今日無預約)";
 
-                    // 3. 🎯 這裡就是最新的「包含姓名與時間」的數位票卡畫面！
+                    // 1. 先變更畫面為票卡 (加入預約下週的按鈕)
                     document.getElementById('mainContainer').innerHTML = `
                         <div class="text-center flex flex-col items-center justify-center py-2">
                             <div class="text-6xl mb-3">✅</div>
@@ -105,10 +103,28 @@
                                 <p class="text-gray-500 text-sm">⏰ <strong class="text-gray-700">打卡時間</strong> <br><span class="text-gray-800 font-bold">${timeString}</span></p>
                             </div>
                             
-                            <p class="text-red-600 font-bold mb-5 text-sm">⚠️ 請將此畫面出示給現場管理員</p>
-                            <button onclick="liff.closeWindow()" class="w-full bg-gray-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-gray-700 text-lg transition-all">我已出示，關閉視窗</button>
+                            <p class="text-red-600 font-bold mb-4 text-sm">⚠️ 請將此畫面出示給現場管理員</p>
+                            
+                            <div class="w-full space-y-3">
+                                <button onclick="window.location.href='${BOOKING_LIFF_URL}'" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-md hover:bg-blue-700 text-lg transition-all flex items-center justify-center">
+                                    <span class="mr-2">📅</span> 順便預約下週場地
+                                </button>
+                                
+                                <button onclick="liff.closeWindow()" class="w-full bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
+                                    我已出示，關閉視窗
+                                </button>
+                            </div>
                         </div>
                     `;
+
+                    // 2. 畫面更新完畢後，稍微延遲 0.5 秒再彈出提示框，體驗會比較順暢
+                    setTimeout(() => {
+                        const wantToBook = confirm(`報到成功！🎉\n\n球友：${res.userName}\n狀態：${courtDisplay}\n\n👉 要順便為自己劃位下週的打球時段嗎？`);
+                        if (wantToBook) {
+                            window.location.href = BOOKING_LIFF_URL;
+                        }
+                    }, 500);
+
                 } else {
                     alert(res.message);
                     btn.innerText = "重新送出打卡";
